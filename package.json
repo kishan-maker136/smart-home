@@ -1,19 +1,21 @@
 {
   "name": "smart-home",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Smart Home Control System",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Kishan",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
+    "express": "^4.22.1",
     "mysql2": "^3.22.0"
   }
 }

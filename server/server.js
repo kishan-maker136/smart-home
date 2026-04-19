@@ -9,7 +9,7 @@ const app = express();
 console.log("Starting server...");
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // ✅ built-in (no body-parser)
 
 // API Routes
 app.use("/devices", require("./routes/devices"));
@@ -19,12 +19,10 @@ app.use("/auth", require("./routes/auth"));
 // Serve frontend
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Fallback route (IMPORTANT for deployment)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// ✅ IMPORTANT: Dynamic PORT for Render
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
