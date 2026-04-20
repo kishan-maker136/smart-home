@@ -23,15 +23,7 @@
 
 ---
 
-## 🎥 Live Demo (GIF Preview)
 
-<p align="center">
-  <img src="https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" width="700"/>
-</p>
-
-> 🔥 Replace this GIF later with your own screen recording for maximum impact
-
----
 
 ## 🚀 What This Project Does
 
