@@ -1,60 +1,71 @@
-// API base URL: use same origin for Railway and local deployment
-const API = window.location.origin || "http://localhost:3000";
-
-// Load devices
-fetch(API + "/devices")
-  .then(res => res.json())
-  .then(data => {
-    let html = "";
-
-    data.forEach(d => {
-      html += `
-        <div>
-          <h3>${d.device_name}</h3>
-          <p>Status: ${d.status ? "ON" : "OFF"}</p>
-          <button onclick="toggle(${d.device_id}, ${!d.status})">
-            Toggle
-          </button>
-        </div>
-      `;
-    });
-
-    document.getElementById("devices").innerHTML = html;
-  })
-  .catch(err => {
-    console.error("Error loading devices:", err);
-  });
-
-// Toggle device
-function toggle(id, status) {
-  fetch(API + "/devices/" + id, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status })
-  })
-  .then(() => location.reload())
-  .catch(err => {
-    console.error("Toggle failed:", err);
-  });
+// Navigation Logic
+function switchPage(pageId, element) {
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    element.classList.add('active');
+    
+    if(pageId === 'admin') loadTuples();
 }
 
-// Chart
-const ctx = document.getElementById("chart");
+// Sending data using relative paths (works locally AND on Railway)
+async function submitToBackend() {
+    const name = document.getElementById('newDevName').value;
+    const roomId = document.getElementById('newDevRoom').value;
+    const type = document.getElementById('newDevType').value;
 
-if (ctx) {
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ["1", "2", "3", "4", "5"],
-      datasets: [{
-        label: "Temperature (°C)",
-        data: [22, 30, 28, 35, 32],
-        borderWidth: 2,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true
+    if(!name) return alert("Please enter a device name.");
+
+    try {
+        const res = await fetch('/api/add-device', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, roomId, type })
+        });
+
+        if(res.ok) {
+            alert(`Success! ${name} added.`);
+            document.getElementById('newDevName').value = '';
+            updateDashboard(); 
+        }
+    } catch (error) {
+        alert("Connection Failed");
     }
-  });
 }
+
+async function updateDashboard() {
+    const res = await fetch('/api/admin/dataset', { headers: { 'admin-auth': 'kishan-secure-2026' } });
+    const data = await res.json();
+    
+    const container = document.getElementById('dashboard-toggles');
+    container.innerHTML = data.slice(0, 4).map(dev => `
+        <div class="toggle-btn ${dev.status ? 'on' : ''}" onclick="toggleDevice(${dev.device_id}, ${dev.status})">
+            ${dev.device_name} <span class="dot"></span>
+        </div>
+    `).join('');
+}
+
+async function toggleDevice(id, status) {
+    await fetch('/api/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: status ? 0 : 1 })
+    });
+    updateDashboard();
+}
+
+async function loadTuples() {
+    const res = await fetch('/api/admin/dataset', { headers: { 'admin-auth': 'kishan-secure-2026' } });
+    const data = await res.json();
+    const tableBody = document.getElementById('tuple-body');
+    tableBody.innerHTML = data.map(row => `
+        <tr>
+            <td>${row.device_id}</td>
+            <td><b>${row.device_name}</b></td>
+            <td>${row.device_type}</td>
+            <td><span style="color:${row.status ? '#10b981':'#ef4444'}">${row.status ? '● ON' : '○ OFF'}</span></td>
+        </tr>
+    `).join('');
+}
+
+window.onload = updateDashboard;
